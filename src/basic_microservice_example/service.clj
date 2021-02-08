@@ -1,4 +1,5 @@
 (ns basic-microservice-example.service
+  (:use clojure.pprint)
   (:require [io.pedestal.http :as http]
             [io.pedestal.http.body-params :as body-params]
             [basic-microservice-example.adapters :as adapters]
@@ -8,7 +9,12 @@
 
 (defn home-page
   [request]
-  (ring-resp/response {:message "Hello World!"}))
+  (println "home-page ->")
+  (println request)
+  (ring-resp/header
+    (ring-resp/response {:message "Hello World!"})
+    "Cesar"
+    "CesarValue"))
 
 (defn create-account
   [{{:keys [customer-id]} :edn-params
@@ -38,10 +44,16 @@
   (ring-resp/response
     (controller/delete-account! (adapters/str->uuid account-id) storage)))
 
+; para entender melhor esse array de interceptors
+(def body-params (body-params/body-params))
+
 (def common-interceptors
-  [(body-params/body-params)
+  [body-params
    http/html-body
    error-info/log-error-during-debugging])
+
+; teste conj
+(conj [1 2 3] 4)
 
 (def routes
   #{["/" :get (conj common-interceptors `home-page)]

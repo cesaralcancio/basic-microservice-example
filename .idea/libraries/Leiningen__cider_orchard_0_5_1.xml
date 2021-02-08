@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Leiningen: cider/orchard:0.5.1">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/cider/orchard/0.5.1/orchard-0.5.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

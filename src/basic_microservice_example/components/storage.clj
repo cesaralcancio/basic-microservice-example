@@ -1,11 +1,17 @@
 (ns basic-microservice-example.components.storage
+  (:use clojure.pprint)
   (:require [com.stuartsierra.component :as component]
             [basic-microservice-example.protocols.storage-client :as storage-client]))
 
 (defrecord InMemoryStorage [storage]
   component/Lifecycle
-  (start [this] this)
-  (stop  [this]
+  (start [this] (let []
+                  (println "Running start InMemoryStorage Storage -> ")
+                  (pprint storage)
+                  (println "Running start InMemoryStorage This -> ")
+                  (pprint this)
+                  this))
+  (stop [this]
     (reset! storage {})
     this)
 
