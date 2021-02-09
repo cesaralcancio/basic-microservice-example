@@ -2,6 +2,7 @@
   (:use clojure.pprint)
   (:require [com.stuartsierra.component :as component]
             [io.pedestal.interceptor.helpers :refer [before]]
+            [io.pedestal.interceptor :as inter]
             [io.pedestal.http.route :as route]
             [io.pedestal.http :as bootstrap]))
 
@@ -12,16 +13,48 @@
 ; testar update-in
 (update-in users [1 :age] inc)
 
+; testando como funciona a cricao de um interceptor
+(def p {:name "James" :age 1 ::bootstrap/interceptors ["abc"]})
+(update-in p [:age] inc)
+(pprint p)
+(defn update-in-p [current-array]
+  (let [funcao-para-associar-no-contexto (fn [context]
+                                           (assoc-in context
+                                                     [:request :components]
+                                                     "adicionado1"))
+        novo-interceptor (inter/interceptor {:name  :meu-interceptor-melhor
+                                             :enter funcao-para-associar-no-contexto})
+        nova-sequencia (cons novo-interceptor current-array)
+        novo-vector (vec nova-sequencia)]
+    (println current-array)
+    (println nova-sequencia)
+    (println novo-vector)
+    novo-vector
+    ))
+(def p-updated (update-in p [::bootstrap/interceptors] update-in-p))
+(pprint p-updated)
+
 (defn- add-system [this]
-  (before (fn [context] (assoc-in context [:request :components] this))))
+  (let []
+    (println "Running the add-system....")
+    (before (fn [context] (let []
+                            (println "Running the lambda function to assoc-in context...")
+                            (assoc-in context [:request :components] this)
+                            )))))
 
 (defn system-interceptors
   "Extend to service's interceptors to include one to inject the components
    into the request object"
   [service-map this]
-  (update-in service-map
-             [::bootstrap/interceptors]
-             #(vec (->> % (cons (add-system this))))))
+  (let [updated (update-in service-map
+                           [::bootstrap/interceptors]
+                           #(vec (->> % (cons (add-system this)))))]
+    (println "service-map ->")
+    (pprint service-map)
+    (println "updated ->")
+    (pprint updated)
+    updated
+    ))
 
 (defn base-service [routes port]
   {:env                      :prod
@@ -54,6 +87,12 @@
         initial-config (if (= :prod env)
                          (prod-init service-conf)
                          (dev-init service-conf))]
+    (println "runnable-service with (config/routes/this) -> ")
+    (pprint config)
+    (pprint routes)
+    (pprint this)
+    (println "initial-config")
+    (pprint initial-config)
     (system-interceptors initial-config this)
     ;(-> (if (= :prod env)
     ;      (prod-init service-conf)
